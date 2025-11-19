@@ -311,17 +311,7 @@ curl -X POST http://localhost:5000/api/customers \
 
 ---
 
-## 📈 Performance
 
-| Metric | Value |
-|--------|-------|
-| Frontend Load Time | ~289ms |
-| API Response Time | <100ms |
-| Database Query | <50ms |
-| Storage Used | <1MB (free tier) |
-| Max Registrations | 1000 |
-
----
 
 ## 🔐 Security
 
@@ -355,20 +345,7 @@ curl -X POST http://localhost:5000/api/customers \
 
 ---
 
-## 🚀 Future Features (Phase 2+)
 
-- [ ] Admin Dashboard
-- [ ] User Authentication (JWT)
-- [ ] Edit/Delete Customer Records
-- [ ] Email Notifications
-- [ ] PDF Certificate Generation
-- [ ] Background Job Queue (RabbitMQ)
-- [ ] Advanced Analytics
-- [ ] Batch Upload (CSV)
-- [ ] API Rate Limiting
-- [ ] Audit Logging
-
----
 
 ## 🛠️ Development Commands
 
