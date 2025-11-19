@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Customer = require('../models/Customer');
 const { enqueueMailJob } = require('./mailQueue');
+const logger = require('../logger');
 
 const QUEUE = 'pdf_jobs';
 let channelPromise;
@@ -15,7 +16,7 @@ const isRabbitEnabled = () =>
 const disableRabbit = reason => {
   if (!rabbitAvailable) return;
   rabbitAvailable = false;
-  console.warn(`RabbitMQ disabled: ${reason}`);
+  logger.warn('RabbitMQ disabled', { reason });
 };
 
 const getStorageDir = () => {
@@ -64,14 +65,14 @@ async function enqueuePdfJob(customerId, { notify = false } = {}) {
 
 async function startPdfWorker() {
   if (!isRabbitEnabled()) {
-    console.warn('RabbitMQ disabled; PDF worker not started.');
+    logger.warn('RabbitMQ disabled; PDF worker not started.');
     return;
   }
   let channel;
   try {
     channel = await getChannel();
   } catch (err) {
-    console.warn(`PDF worker not started: ${err.message || err}`);
+    logger.warn('PDF worker not started', { error: err.message || err });
     return;
   }
   const storageDir = getStorageDir();
@@ -93,22 +94,22 @@ async function startPdfWorker() {
         if (!customer) throw new Error(`Customer ${customerId} not found`);
 
         await generateAndAttachPdf(customer, storageDir);
-        if (notify) {
-          try {
-            await enqueueMailJob({
-              customerId,
-              type: 'approved',
-              pdfPath: customer.pdfPath,
-            });
-          } catch (mailErr) {
-            console.warn('Mail enqueue after PDF failed:', mailErr.message || mailErr);
+          if (notify) {
+            try {
+              await enqueueMailJob({
+                customerId,
+                type: 'approved',
+                pdfPath: customer.pdfPath,
+              });
+            } catch (mailErr) {
+              logger.warn('Mail enqueue after PDF failed', { error: mailErr.message || mailErr });
+            }
           }
+          channel.ack(msg);
+        } catch (err) {
+          logger.error('PDF job failed', { error: err.message });
+          channel.nack(msg, false, false);
         }
-        channel.ack(msg);
-      } catch (err) {
-        console.error('PDF job failed:', err.message);
-        channel.nack(msg, false, false);
-      }
     },
     { noAck: false }
   );

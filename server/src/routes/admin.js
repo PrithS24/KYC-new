@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const { authenticateToken } = require('../middleware/auth');
+const logger = require('../logger');
 
 const router = express.Router();
 
@@ -50,7 +51,7 @@ router.post('/signup', async (req, res) => {
       admin: { id: admin._id, email: admin.email },
     });
   } catch (error) {
-    console.error('Signup error:', error);
+    logger.error('Signup error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -94,7 +95,7 @@ router.post('/login', async (req, res) => {
       admin: { id: admin._id, email: admin.email },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });

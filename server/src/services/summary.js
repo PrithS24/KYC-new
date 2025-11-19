@@ -1,4 +1,5 @@
 const axios = require('axios');
+const logger = require('../logger');
 
 function buildPrompt(d) {
   const name = `${d.firstName} ${d.lastName}`.trim();
@@ -46,7 +47,7 @@ async function generateSummary(data, env) {
     if (!env.HF_API_KEY) return '';
     return await summarizeHF(prompt, env.HF_API_KEY);
   } catch (e) {
-    console.error('LLM summary failed:', e?.response?.data || e.message);
+    logger.error('LLM summary failed', { error: e?.response?.data || e.message });
     return ''; // save without summary if LLM fails
   }
 }

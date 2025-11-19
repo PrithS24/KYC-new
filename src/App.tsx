@@ -621,7 +621,7 @@ export default function App() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="modern-form">
+            <form onSubmit={handleSubmit} className="modern-form" role="form" aria-label="KYC registration form">
               <div className="form-grid">
                 <label className="form-control">
                   <span>First name *</span>

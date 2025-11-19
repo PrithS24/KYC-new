@@ -16,6 +16,7 @@ server/.env
 SETUP_COMPLETE.md
 SYSTEM_DIAGRAM.md
 pdfs/
+server/logs/
 
 # Editor directories and files
 .vscode/*

@@ -385,6 +385,12 @@ npm run preview
 
 # Lint code
 npm run lint
+
+# Unit tests (Vitest)
+npm run test
+
+# Watch mode for tests
+npm run test:watch
 ```
 
 ### Backend
@@ -395,6 +401,9 @@ npm run dev
 
 # Run normally
 node src/server.js
+
+# Unit tests (Jest)
+npm test
 ```
 
 ---

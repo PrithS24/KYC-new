@@ -2,6 +2,7 @@
  * LLM Service for generating customer summaries
  * Supports Hugging Face API and local Ollama
  */
+const logger = require('../logger');
 
 const generateSummary = async (customerData) => {
   const provider = process.env.SUMMARY_PROVIDER || 'hf';
@@ -21,7 +22,7 @@ const generateSummary = async (customerData) => {
 const generateSummaryHuggingFace = async (customerData) => {
   const apiKey = process.env.HF_API_KEY;
   if (!apiKey || apiKey === 'YOUR_HF_TOKEN') {
-    console.warn('HF_API_KEY not configured. Using placeholder summary.');
+    logger.warn('HF_API_KEY not configured. Using placeholder summary.');
     return generatePlaceholderSummary(customerData);
   }
 
@@ -63,7 +64,7 @@ const generateSummaryHuggingFace = async (customerData) => {
 
     return generatePlaceholderSummary(customerData);
   } catch (err) {
-    console.error('HuggingFace LLM error:', err.message);
+    logger.error('HuggingFace LLM error', { error: err.message });
     return generatePlaceholderSummary(customerData);
   }
 };
@@ -100,7 +101,7 @@ const generateSummaryOllama = async (customerData) => {
 
     return generatePlaceholderSummary(customerData);
   } catch (err) {
-    console.error('Ollama LLM error:', err.message);
+    logger.error('Ollama LLM error', { error: err.message });
     return generatePlaceholderSummary(customerData);
   }
 };

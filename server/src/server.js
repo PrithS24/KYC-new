@@ -7,13 +7,20 @@ const morgan = require('morgan');
 const { connectDB } = require('./db');
 const { startPdfWorker, isRabbitEnabled } = require('./services/pdfQueue');
 const { startMailWorker } = require('./services/mailQueue');
+const logger = require('./logger');
 
 const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
-app.use(morgan('dev'));
+app.use(
+  morgan('combined', {
+    stream: {
+      write: message => logger.info(message.trim()),
+    },
+  })
+);
 app.use('/pdfs', express.static(path.join(__dirname, '../pdfs')));
 
 // Routes
@@ -25,24 +32,24 @@ app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 // Error handler
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  logger.error('Unhandled error', { message: err.message, stack: err.stack });
   res.status(500).json({ error: 'ServerError' });
 });
 
 const PORT = process.env.PORT || 5000;
 
 (async () => {
-  console.log('Booting server...');
+  logger.info('Booting server...');
   await connectDB(process.env.MONGODB_URI);
   if (isRabbitEnabled()) {
     try {
       await startPdfWorker();
       await startMailWorker();
     } catch (err) {
-      console.warn('Queue workers not started:', err.message || err);
+      logger.warn('Queue workers not started', { error: err.message || err });
     }
   } else {
-    console.warn('RabbitMQ disabled; synchronous PDF generation enabled.');
+    logger.warn('RabbitMQ disabled; synchronous PDF generation enabled.');
   }
-  app.listen(PORT, () => console.log(`API ready http://localhost:${PORT}`));
+  app.listen(PORT, () => logger.info(`API ready http://localhost:${PORT}`));
 })();

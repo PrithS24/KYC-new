@@ -10,6 +10,7 @@ const {
   isRabbitEnabled,
 } = require('../services/pdfQueue');
 const { enqueueMailJob, sendMailNow } = require('../services/mailQueue');
+const logger = require('../logger');
 
 // GET all customers
 router.get('/', async (_req, res) => {
@@ -17,7 +18,7 @@ router.get('/', async (_req, res) => {
     const customers = await Customer.find().sort({ createdAt: -1 });
     res.json(customers);
   } catch (err) {
-    console.error(err);
+    logger.error('Failed to fetch customers', { error: err.message });
     res.status(500).json({ error: 'Failed to fetch customers' });
   }
 });
@@ -29,7 +30,7 @@ router.get('/:id', async (req, res) => {
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
     res.json(customer);
   } catch (err) {
-    console.error(err);
+    logger.error('Failed to fetch customer', { error: err.message });
     res.status(500).json({ error: 'Failed to fetch customer' });
   }
 });
@@ -54,7 +55,7 @@ router.post('/', async (req, res) => {
     try {
       summary = await generateSummary(validatedData);
     } catch (llmErr) {
-      console.error('Summary generation error:', llmErr);
+      logger.error('Summary generation error', { error: llmErr.message });
       summary = `${validatedData.firstName} ${validatedData.lastName} - Customer registered for KYC verification.`;
     }
 
@@ -71,7 +72,7 @@ router.post('/', async (req, res) => {
       data: customer,
     });
   } catch (err) {
-    console.error('Validation or DB error:', err);
+    logger.error('Validation or DB error', { error: err.message });
 
     if (err.errors && Array.isArray(err.errors)) {
       return res.status(400).json({
@@ -100,7 +101,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     if (!deleted) return res.status(404).json({ error: 'Customer not found' });
     res.json({ success: true, message: 'Customer removed' });
   } catch (err) {
-    console.error('Delete error:', err);
+    logger.error('Delete error', { error: err.message });
     res.status(500).json({ error: 'Failed to delete customer' });
   }
 });
@@ -121,7 +122,7 @@ router.patch('/:id/approve', authenticateToken, async (req, res) => {
         await enqueuePdfJob(customer._id.toString(), { notify: false });
         queued = true;
       } catch (queueErr) {
-        console.warn('Queue unavailable, generating inline:', queueErr.message);
+        logger.warn('Queue unavailable, generating inline', { error: queueErr.message });
       }
     }
     if (queued) {
@@ -133,7 +134,7 @@ router.patch('/:id/approve', authenticateToken, async (req, res) => {
     // No email on approve; mail will be sent when Generate PDF is clicked.
     res.json({ success: true, message: 'Customer approved', data: updated });
   } catch (err) {
-    console.error('Approve error:', err);
+    logger.error('Approve error', { error: err.message });
     res.status(500).json({ error: 'Failed to approve customer' });
   }
 });
@@ -154,11 +155,11 @@ router.patch('/:id/reject', authenticateToken, async (req, res) => {
         await sendMailNow({ customerId: customer._id.toString(), type: 'rejected' });
       }
     } catch (mailErr) {
-      console.warn('Mail send failed:', mailErr.message);
+      logger.warn('Mail send failed', { error: mailErr.message });
     }
     res.json({ success: true, message: 'Customer rejected', data: customer });
   } catch (err) {
-    console.error('Reject error:', err);
+    logger.error('Reject error', { error: err.message });
     res.status(500).json({ error: 'Failed to reject customer' });
   }
 });
@@ -181,7 +182,7 @@ router.post('/:id/pdf', authenticateToken, async (req, res) => {
         await enqueuePdfJob(customer._id.toString(), { notify: true });
         return res.status(202).json({ message: 'PDF generation queued' });
       } catch (queueErr) {
-        console.warn('Queue unavailable, generating inline:', queueErr.message);
+        logger.warn('Queue unavailable, generating inline', { error: queueErr.message });
       }
     }
 
@@ -194,7 +195,7 @@ router.post('/:id/pdf', authenticateToken, async (req, res) => {
         await sendMailNow({ customerId: updated._id.toString(), type: 'approved', pdfPath: updated.pdfPath });
       }
     } catch (mailErr) {
-      console.warn('Mail send failed:', mailErr.message);
+      logger.warn('Mail send failed', { error: mailErr.message });
     }
     return res.json({
       message: 'PDF generated successfully',
@@ -202,7 +203,7 @@ router.post('/:id/pdf', authenticateToken, async (req, res) => {
       data: updated,
     });
   } catch (err) {
-    console.error('PDF generation error:', err);
+    logger.error('PDF generation error', { error: err.message });
     res.status(500).json({ error: 'Failed to generate PDF' });
   }
 });

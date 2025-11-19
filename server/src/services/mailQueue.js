@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const Customer = require('../models/Customer');
+const logger = require('../logger');
 
 const QUEUE = 'mail_jobs';
 let channelPromise;
@@ -14,7 +15,7 @@ const isRabbitEnabled = () =>
 const disableRabbit = reason => {
   if (!rabbitAvailable) return;
   rabbitAvailable = false;
-  console.warn(`RabbitMQ disabled: ${reason}`);
+  logger.warn('RabbitMQ disabled', { reason });
 };
 
 async function getChannel() {
@@ -98,19 +99,19 @@ async function sendMailNow(payload) {
 
 async function startMailWorker() {
   if (!isRabbitEnabled()) {
-    console.warn('RabbitMQ disabled; mail worker not started.');
+    logger.warn('RabbitMQ disabled; mail worker not started.');
     return;
   }
   let channel;
   try {
     channel = await getChannel();
   } catch (err) {
-    console.warn(`Mail worker not started: ${err.message || err}`);
+    logger.warn('Mail worker not started', { error: err.message || err });
     return;
   }
   const transport = buildTransport();
   if (!transport) {
-    console.warn('SMTP not configured; mail worker not started.');
+    logger.warn('SMTP not configured; mail worker not started.');
     return;
   }
 
@@ -152,7 +153,7 @@ async function startMailWorker() {
         }
         channel.ack(msg);
       } catch (err) {
-        console.error('Mail job failed:', err.message);
+        logger.error('Mail job failed', { error: err.message });
         channel.nack(msg, false, false);
       }
     },
