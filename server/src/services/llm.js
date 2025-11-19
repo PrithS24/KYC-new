@@ -29,7 +29,7 @@ const generateSummaryHuggingFace = async (customerData) => {
   try {
     const prompt = buildPrompt(customerData);
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+      process.env.HF_MODEL_URL || 'https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct',
       {
         method: 'POST',
         headers: {

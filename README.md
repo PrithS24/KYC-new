@@ -240,8 +240,8 @@ interface Customer {
 ## 🤖 LLM Integration
 
 ### Current Status
-- **Default**: Fallback mode (generates simple text summaries)
-- **Optional**: Enable AI-powered summaries with Hugging Face API
+- **Default**: Enable AI-powered summaries with Hugging Face API
+- **Optional**: Fallback mode (generates simple text summaries)
 
 ### Enable AI Summaries
 

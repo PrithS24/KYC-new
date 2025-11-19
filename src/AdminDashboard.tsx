@@ -231,12 +231,12 @@ export default function AdminDashboard({ token, onLogout }: AdminDashboardProps)
 
                 <div className="card-actions">
                   {customer.status !== 'approved' && (
-                    <button className="btn btn-accept" onClick={() => handleDecision(customer._id, 'approve')}>
+                    <button className="btn btn-approve" onClick={() => handleDecision(customer._id, 'approve')}>
                       Approve
                     </button>
                   )}
                   {customer.status === 'pending' && (
-                    <button className="btn btn-delete" onClick={() => handleDecision(customer._id, 'reject')}>
+                    <button className="btn btn-reject" onClick={() => handleDecision(customer._id, 'reject')}>
                       Reject
                     </button>
                   )}
@@ -247,7 +247,7 @@ export default function AdminDashboard({ token, onLogout }: AdminDashboardProps)
                         onClick={() => handleGeneratePdf(customer._id)}
                         disabled={pdfState[customer._id] === 'generating'}
                       >
-                        {pdfState[customer._id] === 'generating' ? 'Generating PDF...' : 'Generate PDF'}
+                        {pdfState[customer._id] === 'generating' ? 'Sending…' : 'Send Email'}
                       </button>
                       <button
                         className="btn btn-primary"
